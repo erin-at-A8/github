@@ -1,0 +1,73 @@
+[ {
+  "id" : "6c91b247-f629-f1ae-43c2-0095958bff2b",
+  "name" : "product_filter_properties",
+  "display_width" : null,
+  "label" : "Product Filter Properties",
+  "required" : false,
+  "locked" : false,
+  "occurrence" : {
+    "min" : null,
+    "max" : null,
+    "sorting_label_field" : null,
+    "default" : null
+  },
+  "object_type" : "product",
+  "type" : "crmobjectproperty",
+  "default" : {
+    "property" : "media_type"
+  }
+}, {
+  "id" : "2fe15cf1-082c-ee58-6274-047ceb7a2144",
+  "name" : "product_search_properties",
+  "display_width" : null,
+  "label" : "Product Search Properties",
+  "required" : false,
+  "locked" : false,
+  "occurrence" : {
+    "min" : null,
+    "max" : null,
+    "sorting_label_field" : null,
+    "default" : null
+  },
+  "object_type" : "product",
+  "type" : "crmobjectproperty",
+  "default" : {
+    "property" : "name"
+  }
+}, {
+  "id" : "69d25d0c-2c9b-610f-b734-9246941cf230",
+  "name" : "placement_search_properties",
+  "display_width" : null,
+  "label" : "Placement Search Properties",
+  "required" : false,
+  "locked" : false,
+  "occurrence" : {
+    "min" : null,
+    "max" : null,
+    "sorting_label_field" : null,
+    "default" : null
+  },
+  "object_type" : "p_placements",
+  "type" : "crmobjectproperty",
+  "default" : {
+    "property" : "placement_name"
+  }
+}, {
+  "id" : "e7eee221-0add-bee5-80ae-5b2c5dcab6a4",
+  "name" : "colors",
+  "display_width" : null,
+  "label" : "Colors",
+  "required" : false,
+  "locked" : false,
+  "occurrence" : {
+    "min" : null,
+    "max" : null,
+    "sorting_label_field" : null,
+    "default" : null
+  },
+  "type" : "color",
+  "default" : {
+    "color" : "#8b5fbf",
+    "opacity" : 100
+  }
+} ]

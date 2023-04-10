@@ -1,0 +1,167 @@
+header, footer {
+  display: none; 
+}
+
+.deal-builder {
+  position: relative;
+  z-index: 1;
+}
+
+.deal-builder svg {
+  max-height: 1rem;
+  width: auto;
+}
+
+.deal-builder .section--placements .placement-item {
+  padding: .5rem 1rem;
+  background-color: white;
+  width: 100%;
+}
+
+.deal-builder .section--placements .placement-item + * {
+  margin-top: .5rem;
+}
+
+.deal-builder .section--placements .placement-item * {
+  font-size: .9rem;
+}
+
+.deal-builder .section--details *:not(h1) {
+  color: white;
+}
+
+.filter-select,
+.filter-select ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-select .option-preview {
+  padding: .5rem 1rem;
+}
+
+.filter-select li > ul {
+  max-height: 0px;
+  overflow: clip;
+}
+
+.filter-select.active li > ul {
+  max-height: 500px;
+  overflow-y: scroll;
+}
+
+.filter-select li > ul > li {
+  padding: .25rem 1rem;
+}
+
+.filter-select .option-preview,
+.date-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.placement-filters {
+  background-color: #455270; 
+  overflow: hidden;
+}
+
+.placement-filters + * {
+  margin-top: .5rem;
+}
+
+.deal-builder__section + * {
+  margin-top: 40px; 
+}
+
+.placement-filters.filter--search,
+.placement-filters.filter--search * {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.placement-filters.filter--search button {
+  width: fit-content;
+}
+
+.placement-filters.filter--search input {
+  border: none;
+  padding: .5rem 1rem;
+}
+
+#update_deal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  background-color: #e84855;
+  z-index: 99999;
+  border: none !important;
+}
+
+#update_deal:hover {
+  background-color: #8b5fbf;
+}
+
+.placement-item {
+  position: relative; 
+  overflow: hidden;
+}
+
+.placement-item > .placement-item__row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.placement-item > .placement-item__row > div:first-child {
+  width: fit-content;
+  margin-right: 1rem;
+}
+
+.item__col.col--product_type {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: .25rem;
+  color: white;
+  font-size: .5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.item__col.col--product {
+  font-size: .5rem;
+}
+
+.placement-item.reserved_in_deal {
+  background-color: #455270; 
+  opacity: .7;
+}
+
+.placement-filters *,
+.placement-filters button {
+  border: none;
+  color: white !important;
+  background-color: #455270;
+}
+
+.placement-filters button {
+  padding: .5rem 1rem;
+}
+
+.placement-filters svg path {
+  fill: white;
+}
+
+.placement-filters input[type="text"]::placeholder {
+  color: white;
+  font-family: 'Source Sans Pro';
+  font-size: .9rem;
+}

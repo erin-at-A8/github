@@ -1,0 +1,284 @@
+{# VARIABLES #}
+{% set deal_id = Query.deal|split("#")|first or dynamic_page_crm_object.hs_object_id %}
+{% set placement_props_to_get = ["placement_name", "related_product", "status", "placement_date", "hs_object_id", "stock"] %}
+{% set get_these = placement_props_to_get|join(",") %}
+{% set all_placements = crm_objects("placements", "limit=100", get_these).results %}
+{% set all_products = crm_objects("product", "limit=100", "name,media_type,price,hs_object_id,stock").results %}
+{% set this_deal = crm_object("deal", deal_id, "dealname") if deal_id %}
+
+{# HELPER MACROS #}
+{% macro icons(name) %}
+  {% if name == "calendar" %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M96 32V64H48C21.5 64 0 85.5 0 112v48H448V112c0-26.5-21.5-48-48-48H352V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V64H160V32c0-17.7-14.3-32-32-32S96 14.3 96 32zM448 192H0V464c0 26.5 21.5 48 48 48H400c26.5 0 48-21.5 48-48V192z"/></svg>
+  {% elif name == "angle-down" %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M169.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 274.7 54.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
+  {% elif name == "search" %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+  {% endif %}
+{% endmacro %}
+
+{% macro slugify(string) %}
+  {{ string|replace(" ","_")|lower }}
+{% endmacro %}
+
+{# WRAPPER MACROS #}
+{% macro render_filter(type) %}
+<div class="placement-filters filter--{{ type }}">
+  {{ caller() }}
+</div>
+{% endmacro %}
+
+{% macro render_col(name) %}
+<div class="item__col col--{{ name }}">
+  {{ caller() }}
+</div>
+{% endmacro %}
+
+{% macro render_section(name) %}
+<div class="deal-builder__section section--{{ name }}">
+  {{ caller() }}
+</div>
+{% endmacro %}
+
+{# OBJECT MACROS #}
+{% macro render_placement(placement) %}
+  {% set related_product = all_products|selectattr("name","==",placement.related_product)|first %}
+  {% set classes = [] %}
+  {% set search_data = [] %}
+  {% set product_filter_props = module.product_filter_properties %}
+  {% set product_search_props =  module.product_search_properties %}
+  {% set placement_search_props =  module.placement_search_properties %}
+  {% for filter_prop in module.product_filter_properties %}
+    {% set this_prop_name = filter_prop.property_definition.name %}
+    {% set this_prop_value = slugify(related_product[this_prop_name])|trim %}
+    {% do classes.append(this_prop_value) if this_prop_value %}
+  {% endfor %}
+  {% for search_prop in placement_search_props %}
+    {% set this_prop_name = search_prop.property_definition.name %}
+    {% set this_prop_value = placement[this_prop_name] %}
+    {% do search_data.append(this_prop_value) if this_prop_value %}
+  {% endfor %}
+  {% for search_prop in product_search_props %}
+    {% set this_prop_name = search_prop.property_definition.name %}
+    {% set this_prop_value = related_product[this_prop_name] %}
+    {% do search_data.append(this_prop_value) if this_prop_value %}
+  {% endfor %}
+  <div class="placement-item {{ slugify(placement.status)|trim }} {{ classes|join(" ") if classes != [] }}" data-search="{{ search_data|join(" ")|escape }}">
+    <div class="placement-item__row">
+      {% call render_col("add") %}
+        <input type="checkbox" {{ "disabled" if placement.status != "Available" }} value="{{ related_product.hs_object_id }}" data-placement="{{ placement.hs_object_id }}" data-product-stock="{{ related_product.stock }}" data-placement-stock="{{ placement.stock }}">
+      {% endcall %}
+      <div class="placement-item__row">
+        {% call render_col("name") %}
+          <strong>{{ placement.placement_name }} ({{ placement.stock }})</strong>
+        {% endcall %}
+        {% call render_col("product") %}
+          {{ placement.related_product }} ({{ related_product.stock }})
+        {% endcall %}
+        {% call render_col("product_type") %}
+          {{ related_product.media_type }}
+        {% endcall %}
+        {% call render_col("price") %}
+          {{ related_product.price }}
+        {% endcall %}
+        {% call render_col("date") %}
+          {{ placement.placement_date }}
+        {% endcall %}
+      </div>
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro build_selector(this_filter) %}
+  {% set prop_name = this_filter.property_definition.name %}
+  {% set prop_label = this_filter.property_definition.label %}
+  {% set prop_options = this_filter.property_definition.options %}
+  <ul class="deal-builder__selector filter-select">
+    <li class="option-preview"><span>Select a {{ prop_label }}</span>{{ icons("angle-down") }}</li>
+    <li>
+      <ul class="filter-select__options">
+        {% for option in prop_options %}
+          {% if option.label != "" %}
+            <li data-filter=".{{ slugify(option.value)|trim }}">{{ option.label }}</li>
+          {% endif %}
+        {% endfor %}
+        <li></li>
+      </ul>
+    </li>
+  </ul>
+{% endmacro %}
+
+{# PRIMARY CONTAINER #}
+<div id="{{ name }}" class="deal-builder" data-deal="{{ deal_id }}">
+  <div class="deal-builder__container">
+    {% call render_section("details") %}
+      <h1>{{ this_deal.dealname if this_deal else "Deal Builder" }}</h1>
+      {% if this_deal %}
+        <p>{{ this_deal.description }}</p>
+        <button id="update_deal">
+          Update Deal
+        </button>
+      {% else %}
+        <p>No deal selected.</p>
+      {% endif %}
+    {% endcall %}
+    {% call render_section("filters") %}
+      {% call render_filter("date") %}
+        <div id="datepicker"></div>
+        <button class="date-picker">
+          <span>Choose a Date or Range</span>
+          {{ icons("calendar") }}
+        </button>
+      {% endcall %}
+      {% for this_filter in module.product_filter_properties %}
+        {% call render_filter(this_filter.property_definition.name) %}
+          {{ build_selector(this_filter) }}
+        {% endcall %}
+      {% endfor %}
+      {% call render_filter("search") %}
+        <label for="search" class="deal-builder__search">
+          <input type="text" placeholder="Search Placments or Products" />
+          <button>
+            {{ icons("search") }}
+          </button>
+        </label>
+      {% endcall %}
+    {% endcall %}
+    {% call render_section("placements") %}
+      {% for placement in all_placements %}
+        {{ render_placement(placement) }}
+      {% endfor %}
+    {% endcall %}
+  </div>
+</div>
+
+{# JAVASCRIPT #}
+{% require_js position="footer" %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha512-Zq2BOxyhvnRFXu0+WE6ojpZLOU2jdnqbrM1hmVdGzyeCa1DgM3X5Q4A/Is9xA1IkbUeDd7755dNNI/PzSf2Pew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  $(document).ready(function() {
+    var grid = $('.section--placements').isotope({
+      itemSelector: '.placement-item',
+      layoutMode: 'fitRows'
+    });
+    var select_init = function() {
+      var selector = $(".filter-select"),
+          options = selector.find(".filter-select__options li"),
+          option_preview = selector.find(".option-preview").find("span"),
+          starting_text = option_preview.text();
+      selector.on("click", function() {
+        $(this).toggleClass("active");
+      });
+      options.on("click", function() {
+        var option_value = $(this).attr("data-filter"),
+            option_label = $(this).text();
+        if ($(this).is(".active")) {
+          $(this).removeClass("active");
+          $(this).closest(".filter-select").find(".option-preview").find("span").text(starting_text);
+        } else {
+          $(this).addClass("active").siblings().removeClass("active");
+          $(this).closest(".filter-select").find(".option-preview").find("span").text(option_label);
+          grid.isotope({ filter: option_value });
+        }
+      });
+    },
+        search_init = function() {
+          var search_items = function(term) {
+            var search_term = term;
+            grid.isotope({ filter: function() {
+              var values = $(this).attr('data-search').toLowerCase();
+              console.log(values);
+              return values.match(search_term);
+            } });
+          };
+          $(".deal-builder__search button").on("click", function() {
+            var term = $(this).prev().val().toLowerCase();
+            console.log(term);
+            search_items(term);
+          });
+        },
+        build_payload = function() {
+          var inputs = $("input[type='checkbox']:checked"),
+              products = [],
+              placements = [];
+          inputs.each(function() {
+            var product_id = $(this).val(),
+                placement_id = $(this).attr("data-placement"),
+                product_stock = $(this).attr("data-product-stock"),
+                placement_stock = $(this).attr("data-placement-stock");
+            products.push(product_id);
+            placements.push({"placement": placement_id, "related_product": product_id, "product_stock": product_stock, "placement_stock": placement_stock});
+          });
+          var object = {
+            "products": products,
+            "placements": placements
+          };
+          return object
+        },
+        send_to_serverless = function(object) {
+          var endpoint = "";
+          var response = fetch(`https://{{ request.domain }}/_hcms/api/update/deal?deal={{deal_id}}`, {
+            method: 'POST',
+            body: JSON.stringify(object),
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            }
+          });
+          return response;
+        };
+    select_init();
+    search_init();
+    $("#update_deal").click(function() {
+      var payload = build_payload(),
+          response = send_to_serverless(payload);
+      console.log(payload);
+      let data = response.then((res) => {
+        return res
+      }).then((data) => {
+        console.log(data);
+      });
+    });
+  });
+</script>
+{% end_require_js %}
+
+{# CSS #}
+{% require_css %}
+{% macro transition(value) %}-webkit-transition: {{ value }};-moz-transition: {{ value }};-o-transition: {{ value }};-ms-transition: {{ value }};transition: {{ value }};{% endmacro %}
+{% macro borderRadius(value) %}-webkit-border-radius: {{ value }};-moz-border-radius: {{ value }};-o-border-radius: {{ value }};-ms-border-radius: {{ value }};border-radius: {{ value }};{% endmacro %}
+{% macro boxShadow(value) %}-webkit-box-shadow: {{ value }};-moz-box-shadow: {{ value }};-o-box-shadow: {{ value }};-ms-box-shadow: {{ value }};box-shadow: {{ value }};{% endmacro %}
+{% macro textShadow(value) %}-webkit-text-shadow: {{ value }};-moz-text-shadow: {{ value }};-o-text-shadow: {{ value }};-ms-text-shadow: {{ value }};text-shadow: {{ value }};{% endmacro %}
+{% macro transform(value) %}-webkit-transform: {{ value }};-moz-transform: {{ value }};-o-transform: {{ value }};-ms-transform: {{ value }}; transform: {{ value }};{% endmacro %}
+<style>
+  .filter-select li > ul,
+  .filter-select .option-preview svg {
+    {{ transition("all .5s ease-in-out") }}
+  }
+  .filter-select.active .option-preview svg {
+    {{ transform("rotate(180deg)") }}
+  }
+  #update_deal {
+    {{ borderRadius("0") }}
+  }
+  .placement-item,
+  .placement-filters {
+    {{ borderRadius("8px") }}
+  }
+  .placement-filters > * {
+    {{ borderRadius("0") }}
+  }
+  {% for this_filter in module.product_filter_properties %}
+    {% set this_prop_name = this_filter.property_definition.name %}
+    {% if this_prop_name == "media_type" %}
+      {% set options = this_filter.property_definition.options %}
+      {% for option in options %}
+        {% set color = module.colors[loop.index] if module.colors[loop.index] else module.colors[0] %}
+        .placement-item.{{ slugify(option)|trim }} .item__col.col--product_type {
+          background-color: {{ color.css }};
+        }
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+</style>
+{% end_require_css %}

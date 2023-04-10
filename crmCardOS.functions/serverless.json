@@ -1,0 +1,14 @@
+{
+  "runtime": "nodejs18.x",
+  "version": "1.0",
+  "environment": {},
+  "secrets": [
+    "apiKey"
+  ],
+  "endpoints": {
+    "update/deal": {
+      "method": "POST",
+      "file": "update-deal.js"
+    }
+  }
+}
